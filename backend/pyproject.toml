@@ -36,9 +36,10 @@ target-version = "py313"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["COM812", "D203", "D213"]
+ignore = ["COM812", "CPY001", "D203", "D213"]
 
 [tool.ruff.lint.per-file-ignores]
+"migrations/env.py" = ["INP001"]
 "migrations/versions/*.py" = ["D", "INP001"]
 
 [tool.pyright]
@@ -60,4 +61,3 @@ source = ["piecewise_linear"]
 [tool.coverage.report]
 fail_under = 90
 show_missing = true
-

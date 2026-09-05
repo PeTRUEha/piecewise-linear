@@ -1,0 +1,72 @@
+name: piecewise-linear-dev
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-piecewise_linear}
+      POSTGRES_USER: ${POSTGRES_USER:-piecewise_linear}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-piecewise_linear}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build:
+      context: ./backend
+      target: development
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-piecewise_linear}:${POSTGRES_PASSWORD:-piecewise_linear}@db:5432/${POSTGRES_DB:-piecewise_linear}
+    command: ["alembic", "upgrade", "head"]
+    volumes:
+      - ./backend:/app
+      - backend-venv:/app/.venv
+    depends_on:
+      db:
+        condition: service_healthy
+
+  backend:
+    build:
+      context: ./backend
+      target: development
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-piecewise_linear}:${POSTGRES_PASSWORD:-piecewise_linear}@db:5432/${POSTGRES_DB:-piecewise_linear}
+    ports:
+      - "${BACKEND_PORT:-8000}:8000"
+    volumes:
+      - ./backend:/app
+      - backend-venv:/app/.venv
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/health/ready')"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    environment:
+      VITE_BACKEND_TARGET: http://backend:8000
+    ports:
+      - "${FRONTEND_PORT:-5173}:5173"
+    volumes:
+      - ./frontend:/app
+      - frontend-node-modules:/app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  backend-venv:
+  frontend-node-modules:
