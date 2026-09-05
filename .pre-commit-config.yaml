@@ -16,6 +16,16 @@ repos:
         entry: uv run --project backend pyright --project backend
         language: system
         pass_filenames: false
+      - id: backend-unit-tests
+        name: backend unit tests
+        entry: uv run --project backend coverage run --rcfile=backend/pyproject.toml -m pytest backend/tests/unit -q
+        language: system
+        pass_filenames: false
+      - id: backend-coverage
+        name: backend coverage
+        entry: uv run --project backend coverage report --rcfile=backend/pyproject.toml
+        language: system
+        pass_filenames: false
       - id: frontend-lint
         name: frontend ESLint
         entry: npm --prefix frontend run lint
@@ -24,5 +34,20 @@ repos:
       - id: frontend-typecheck
         name: frontend TypeScript
         entry: npm --prefix frontend run typecheck
+        language: system
+        pass_filenames: false
+      - id: frontend-tests
+        name: frontend tests
+        entry: npm --prefix frontend run test
+        language: system
+        pass_filenames: false
+      - id: frontend-build
+        name: frontend production build
+        entry: npm --prefix frontend run build
+        language: system
+        pass_filenames: false
+      - id: container-checks
+        name: production containers and health
+        entry: pwsh -File scripts/check-containers.ps1
         language: system
         pass_filenames: false

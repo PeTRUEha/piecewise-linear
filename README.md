@@ -48,11 +48,17 @@ docker compose down
 make help
 make install
 make check
+make test
+make test-integration
+make e2e
+make check-containers
 make migrate
 make build
 ```
 
-Для отката миграции нужно явно указать ревизию, например `make migrate-down REVISION=base`. Команда `make test` предназначена для тестовых наборов после их добавления.
+`make test` запускает модульные тесты backend с проверкой покрытия и компонентные тесты frontend. Для интеграционных тестов нужен отдельный PostgreSQL и переменная `TEST_DATABASE_URL`; схема должна быть предварительно обновлена миграциями. `make e2e` запускает браузерные сценарии Playwright для уже поднятого локального Compose-окружения. `make check-containers` собирает и проверяет production-контейнеры в изолированном окружении; на Windows для этой команды нужен PowerShell 7.
+
+Для отката миграции нужно явно указать ревизию, например `make migrate-down REVISION=base`. Все перечисленные проверки также выполняются в GitHub Actions: статический анализ и модульные тесты, интеграционные тесты с PostgreSQL, браузерные сценарии и проверка production-контейнеров.
 
 ## Развёртывание на Linux
 

@@ -41,6 +41,7 @@ ignore = ["COM812", "CPY001", "D203", "D213"]
 [tool.ruff.lint.per-file-ignores]
 "migrations/env.py" = ["INP001"]
 "migrations/versions/*.py" = ["D", "INP001"]
+"tests/**/*.py" = ["PLR2004", "S101"]
 
 [tool.pyright]
 include = ["src"]
@@ -53,6 +54,9 @@ venv = ".venv"
 addopts = "--strict-config --strict-markers"
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = [
+  "integration: requires a real PostgreSQL database",
+]
 
 [tool.coverage.run]
 branch = true

@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install up down logs lint typecheck check test migrate migrate-down build deploy
+.PHONY: help install up down logs lint typecheck check test test-integration e2e check-containers migrate migrate-down build deploy
 
 help: ## Показать доступные команды
 	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "%-18s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -30,8 +30,18 @@ typecheck: ## Проверить типы backend и frontend
 check: lint typecheck ## Выполнить все статические проверки
 
 test: ## Запустить тесты проекта
-	uv run --project backend pytest
+	uv run --project backend coverage run --rcfile=backend/pyproject.toml -m pytest backend/tests/unit
+	uv run --project backend coverage report --rcfile=backend/pyproject.toml
 	npm --prefix frontend run test
+
+test-integration: ## Запустить интеграционные тесты с TEST_DATABASE_URL
+	uv run --project backend pytest backend/tests/integration
+
+e2e: ## Запустить Playwright против работающего Compose
+	npm --prefix frontend run test:e2e
+
+check-containers: ## Проверить production-образы и health endpoints
+	pwsh -File scripts/check-containers.ps1
 
 migrate: ## Применить миграции в локальном окружении
 	docker compose run --rm migrate

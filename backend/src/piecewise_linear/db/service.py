@@ -23,7 +23,7 @@ class PointService:
 
     async def list_points(self) -> list[Point]:
         """Return all points in identifier order."""
-        return await self.repository.list(order_by=Point.id.asc())
+        return await self.repository.get_many(order_by=Point.id.asc())
 
     async def create_point(self, *, x: float, y: float) -> Point:
         """Append a point using the next available identifier."""
