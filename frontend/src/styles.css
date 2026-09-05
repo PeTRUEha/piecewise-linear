@@ -1,0 +1,11 @@
+/** Базовые стили приложения. */
+
+:root {
+  font-family: Inter, system-ui, sans-serif;
+  color: #172033;
+  background: #f3f5f8;
+}
+
+body {
+  margin: 0;
+}
