@@ -4,10 +4,25 @@
 
 ## Быстрый запуск
 
-Для обычного локального запуска нужны только Docker Desktop (Windows/macOS) или Docker Engine с Compose plugin (Linux):
+Поддерживаемая среда разработки — Ubuntu 24.04 WSL либо Linux с Docker Engine и Compose plugin. Docker Desktop не требуется.
+
+На Windows сначала установите Ubuntu 24.04 WSL, затем откройте терминал Ubuntu. Рабочая копия хранится непосредственно в файловой системе WSL по пути:
 
 ```bash
-docker compose up --build
+/home/redmi/Python projects/piecewise-linear
+```
+
+Первичную установку системных инструментов выполняет сценарий от root; в Windows Terminal это можно сделать так:
+
+```powershell
+wsl -d Ubuntu-24.04 -u root -- bash -lc 'cd "/home/redmi/Python projects/piecewise-linear" && bash scripts/bootstrap-wsl.sh redmi'
+```
+
+После этого откройте Ubuntu заново, чтобы обновилось членство пользователя в группе `docker`. Все дальнейшие операции выполняйте внутри WSL из корня репозитория через `make`:
+
+```bash
+make install
+make up
 ```
 
 После запуска доступны:
@@ -21,7 +36,7 @@ docker compose up --build
 Compose сначала ждёт PostgreSQL, затем применяет миграции и только после этого запускает backend и Vite. Исходники подключены в контейнеры, поэтому изменения автоматически подхватываются. Остановка окружения:
 
 ```bash
-docker compose down
+make down
 ```
 
 Порты и реквизиты локальной базы можно изменить через переменные из `.env.example`.
@@ -40,9 +55,9 @@ docker compose down
 
 После любой операции, меняющей состав или порядок, сервер возвращает актуальное состояние. Если набор изменился до перестановки, API отвечает `409` и не сохраняет частичный результат.
 
-## Локальные инструменты
+## Команды разработки
 
-Если Python 3.13, `uv`, Node.js 24 и GNU Make установлены на машине, доступны команды:
+Единый интерфейс проекта — Makefile. Каждая цель вызывает `project.sh` в Bash. Нативный запуск из Windows не поддерживается: используйте Ubuntu WSL или Linux.
 
 ```bash
 make help
@@ -52,13 +67,14 @@ make test
 make test-integration
 make e2e
 make check-containers
+make verify
 make migrate
 make build
 ```
 
-`make test` запускает модульные тесты backend с проверкой покрытия и компонентные тесты frontend. Для интеграционных тестов нужен отдельный PostgreSQL и переменная `TEST_DATABASE_URL`; схема должна быть предварительно обновлена миграциями. `make e2e` запускает браузерные сценарии Playwright для уже поднятого локального Compose-окружения. `make check-containers` собирает и проверяет production-контейнеры в изолированном окружении; на Windows для этой команды нужен PowerShell 7.
+`make test` запускает модульные тесты backend с проверкой покрытия и компонентные тесты frontend. `make test-integration` сама создаёт изолированную PostgreSQL, применяет миграции, запускает тесты и удаляет окружение. `make e2e` аналогично поднимает полный Compose-сервис, ждёт frontend, запускает Playwright и очищает окружение. `make check-containers` проверяет production-образы и health endpoints. Для этих трёх команд также нужен Docker Compose.
 
-Для отката миграции нужно явно указать ревизию, например `make migrate-down REVISION=base`. Все перечисленные проверки также выполняются в GitHub Actions: статический анализ и модульные тесты, интеграционные тесты с PostgreSQL, браузерные сценарии и проверка production-контейнеров.
+`make verify` последовательно выполняет все статические, модульные, интеграционные, E2E- и контейнерные проверки. Процесс не зависит от Git-хостинга: любая внешняя система автоматизации может вызвать те же команды Make. Для отката миграции используйте `make migrate-down REVISION=base`.
 
 ## Развёртывание на Linux
 
@@ -71,7 +87,7 @@ cp .env.example .env
 Обязательно замените `POSTGRES_PASSWORD` в `.env` на стойкий пароль. При необходимости задайте внешний `APP_PORT`. Затем запустите production-конфигурацию:
 
 ```bash
-docker compose -f compose.prod.yaml up --build --detach
+make deploy
 ```
 
 Nginx публикует интерфейс и проксирует API, Swagger и OpenAPI в backend. PostgreSQL и backend доступны только во внутренней сети Compose. Проверка состояния и просмотр журналов:

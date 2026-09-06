@@ -48,6 +48,6 @@ repos:
         pass_filenames: false
       - id: container-checks
         name: production containers and health
-        entry: pwsh -File scripts/check-containers.ps1
+        entry: bash scripts/check-containers.sh
         language: system
         pass_filenames: false

@@ -1,6 +1,12 @@
 /** Сквозные сценарии редактора против полного Compose-окружения. */
 
-import { expect, test, type APIRequestContext, type Locator, type Page } from "@playwright/test";
+import {
+  expect,
+  test,
+  type APIRequestContext,
+  type Locator,
+  type Page,
+} from "../../frontend/playwright-support";
 
 interface PointResponse {
   id: number;

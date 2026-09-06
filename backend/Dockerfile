@@ -18,6 +18,11 @@ RUN uv sync --frozen --no-dev
 EXPOSE 8000
 CMD ["uvicorn", "piecewise_linear.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
+FROM development AS testing
+RUN uv sync --frozen
+COPY tests ./tests
+CMD ["pytest", "tests"]
+
 FROM development AS builder
 RUN uv sync --frozen --no-dev --no-editable
 

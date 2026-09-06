@@ -1,0 +1,12 @@
+# Нормализует окончания строк для запуска сценариев в Linux/WSL.
+* text=auto
+Makefile text eol=lf
+*.sh text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+Dockerfile text eol=lf
+*.py text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.css text eol=lf
+*.md text eol=lf

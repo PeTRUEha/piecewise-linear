@@ -1,57 +1,55 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install up down logs lint typecheck check test test-integration e2e check-containers migrate migrate-down build deploy
+.PHONY: help install up down logs lint typecheck check test test-integration e2e check-containers verify migrate migrate-down build deploy
 
 help: ## Показать доступные команды
-	@awk 'BEGIN {FS = ":.*## "} /^[a-zA-Z_-]+:.*## / {printf "%-18s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	bash ./project.sh help
 
 install: ## Установить зависимости для локальной разработки
-	uv sync --project backend --dev
-	npm --prefix frontend ci
+	bash ./project.sh install
 
 up: ## Запустить локальное окружение с hot reload
-	docker compose up --build
+	bash ./project.sh up
 
 down: ## Остановить локальное окружение
-	docker compose down
+	bash ./project.sh down
 
 logs: ## Следить за журналами сервисов
-	docker compose logs --follow
+	bash ./project.sh logs
 
 lint: ## Проверить стиль backend и frontend
-	uv run --project backend ruff check backend
-	uv run --project backend ruff format --check backend
-	npm --prefix frontend run lint
+	bash ./project.sh lint
 
 typecheck: ## Проверить типы backend и frontend
-	uv run --project backend pyright --project backend
-	npm --prefix frontend run typecheck
+	bash ./project.sh typecheck
 
-check: lint typecheck ## Выполнить все статические проверки
+check: ## Выполнить все статические проверки
+	bash ./project.sh check
 
 test: ## Запустить тесты проекта
-	uv run --project backend coverage run --rcfile=backend/pyproject.toml -m pytest backend/tests/unit
-	uv run --project backend coverage report --rcfile=backend/pyproject.toml
-	npm --prefix frontend run test
+	bash ./project.sh test
 
-test-integration: ## Запустить интеграционные тесты с TEST_DATABASE_URL
-	uv run --project backend pytest backend/tests/integration
+test-integration: ## Запустить интеграционные тесты в изолированном Compose
+	bash ./project.sh test-integration
 
-e2e: ## Запустить Playwright против работающего Compose
-	npm --prefix frontend run test:e2e
+e2e: ## Запустить Playwright в изолированном Compose
+	bash ./project.sh e2e
 
 check-containers: ## Проверить production-образы и health endpoints
-	pwsh -File scripts/check-containers.ps1
+	bash ./project.sh check-containers
+
+verify: ## Выполнить полную проверку проекта
+	bash ./project.sh verify
 
 migrate: ## Применить миграции в локальном окружении
-	docker compose run --rm migrate
+	bash ./project.sh migrate
 
 migrate-down: ## Откатить миграции до REVISION (пример: REVISION=base)
 	test -n "$(REVISION)"
-	docker compose run --rm migrate alembic downgrade $(REVISION)
+	bash ./project.sh migrate-down $(REVISION)
 
 build: ## Собрать production-образы
-	docker compose -f compose.prod.yaml build
+	bash ./project.sh build
 
 deploy: ## Запустить production-конфигурацию
-	docker compose -f compose.prod.yaml up --build --detach
+	bash ./project.sh deploy
